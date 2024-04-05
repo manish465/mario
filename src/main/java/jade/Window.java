@@ -1,11 +1,14 @@
 package jade;
 
 import org.lwjgl.Version;
+import org.lwjgl.glfw.Callbacks;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+
+import java.util.Objects;
 
 public class Window {
     private int width, height;
@@ -33,11 +36,18 @@ public class Window {
 
         init();
         loop();
+
+        // Free the memory
+        Callbacks.glfwFreeCallbacks(glfwWindow);
+        GLFW.glfwDestroyWindow(glfwWindow);
+
+        //Terminate GLFW and the free error callback
+        GLFW.glfwTerminate();
+        Objects.requireNonNull(GLFW.glfwSetErrorCallback(null)).free();
     }
 
     public void init(){
         // Setup an error callback
-
         GLFWErrorCallback.createPrint(System.err).set();
 
         // initialize GLFW
@@ -56,6 +66,12 @@ public class Window {
         if(glfwWindow == MemoryUtil.NULL){
             throw new IllegalStateException("failed to create GLFW window");
         }
+
+        // Set Input Event Callbacks
+        GLFW.glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback);
+        GLFW.glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
+        GLFW.glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
+        GLFW.glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
 
         // Make OpenGL context current
         GLFW.glfwMakeContextCurrent(glfwWindow);
@@ -79,7 +95,7 @@ public class Window {
             // Poll events
             GLFW.glfwPollEvents();
 
-            GL11.glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+            GL11.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
             GLFW.glfwSwapBuffers(glfwWindow);

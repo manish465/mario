@@ -1,43 +1,24 @@
 package jade;
 
+import org.joml.Vector2d;
+import org.joml.Vector2f;
 import org.lwjgl.BufferUtils;
-import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
 import renderer.Shader;
+import util.Time;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class LevelEditorScene extends Scene {
-    private String vertexShaderSrc = "#version 330 core\n" +
-            "\n" +
-            "layout (location=0) in vec3 aPos;\n" +
-            "layout (location=1) in vec4 aColor;\n" +
-            "\n" +
-            "out vec4 fColor;\n" +
-            "\n" +
-            "void main(){\n" +
-            "    fColor = aColor;\n" +
-            "    gl_Position = vec4(aPos, 1.0);\n" +
-            "}";
-
-    private String fragmentShaderSrc = "#version 330 core\n" +
-            "\n" +
-            "in vec4 fColor;\n" +
-            "\n" +
-            "out vec4 color;\n" +
-            "\n" +
-            "void main(){\n" +
-            "    color = fColor;\n" +
-            "}";
 
     private int vertexID, fragmentID, shaderProgram;
 
     private float[] vertexArray = {
             // position         // color
-            0.5f, -0.5f,0.0f,   1.0f, 0.0f, 0.0f, 1.0f, // Bottom right
-            -0.5f, 0.5f,0.0f,   0.0f, 1.0f, 0.0f, 1.0f, // Top left
-            0.5f, 0.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f, // Top right
+            100.5f, -0.5f,0.0f,   1.0f, 0.0f, 0.0f, 1.0f, // Bottom right
+            -0.5f, 100.5f,0.0f,   0.0f, 1.0f, 0.0f, 1.0f, // Top left
+            100.5f, 100.5f, 0.0f,   0.0f, 0.0f, 1.0f, 1.0f, // Top right
             -0.5f, -0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, // Bottom left
     };
 
@@ -52,12 +33,16 @@ public class LevelEditorScene extends Scene {
     private Shader defaultShader;
 
     public LevelEditorScene() {
-        defaultShader = new Shader("assets/shaders/default.glsl");
-        defaultShader.compile();
+
     }
 
     @Override
     public void init(){
+        this.camera = new Camera(new Vector2f());
+
+        defaultShader = new Shader("assets/shaders/default.glsl");
+        defaultShader.compile();
+
         // ============================================================
         // Generate VAO, VBO, and EBO buffer objects, and send to GPU
         // ============================================================
@@ -95,7 +80,13 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void update(float dt) {
+        camera.position.x -= dt * 50.0f;
+        camera.position.y -= dt * 50.0f;
+
         defaultShader.use();
+        defaultShader.uploadMat4f("uProjection", camera.getProjectionMatrix());
+        defaultShader.uploadMat4f("uView", camera.getViewMatrix());
+        defaultShader.uploadFloat("uTime", Time.getTime());
 
         // Bind the VAO that we're using
         GL30.glBindVertexArray(vaoID);

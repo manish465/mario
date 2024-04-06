@@ -3,6 +3,7 @@ package jade;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.opengl.GL20;
 import org.lwjgl.opengl.GL30;
+import renderer.Shader;
 
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -48,55 +49,15 @@ public class LevelEditorScene extends Scene {
 
     private int vaoID, vboID, eboID;
 
+    private Shader defaultShader;
+
     public LevelEditorScene() {
+        defaultShader = new Shader("assets/shaders/default.glsl");
+        defaultShader.compile();
     }
 
     @Override
     public void init(){
-        vertexID = GL20.glCreateShader(GL20.GL_VERTEX_SHADER);
-        // Pass the shader source to the GPU
-        GL20.glShaderSource(vertexID, vertexShaderSrc);
-        GL20.glCompileShader(vertexID);
-
-        // Check for errors in compilation
-        int success = GL20.glGetShaderi(vertexID, GL20.GL_COMPILE_STATUS);
-        if (success == GL20.GL_FALSE) {
-            int len = GL20.glGetShaderi(vertexID, GL20.GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: 'defaultShader.glsl'\n\tVertex shader compilation failed.");
-            System.out.println(GL20.glGetShaderInfoLog(vertexID, len));
-            assert false : "";
-        }
-
-        // First load and compile the vertex shader
-        fragmentID = GL20.glCreateShader(GL20.GL_FRAGMENT_SHADER);
-        // Pass the shader source to the GPU
-        GL20.glShaderSource(fragmentID, fragmentShaderSrc);
-        GL20.glCompileShader(fragmentID);
-
-        // Check for errors in compilation
-        success = GL20.glGetShaderi(fragmentID, GL20.GL_COMPILE_STATUS);
-        if (success == GL20.GL_FALSE) {
-            int len = GL20.glGetShaderi(fragmentID, GL20.GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: 'defaultShader.glsl'\n\tFragment shader compilation failed.");
-            System.out.println(GL20.glGetShaderInfoLog(fragmentID, len));
-            assert false : "";
-        }
-
-        // Link shaders and check for errors
-        shaderProgram = GL20.glCreateProgram();
-        GL20.glAttachShader(shaderProgram, vertexID);
-        GL20.glAttachShader(shaderProgram, fragmentID);
-        GL20.glLinkProgram(shaderProgram);
-
-        // Check for linking errors
-        success = GL20.glGetProgrami(shaderProgram, GL20.GL_LINK_STATUS);
-        if (success == GL20.GL_FALSE) {
-            int len = GL20.glGetProgrami(shaderProgram, GL20.GL_INFO_LOG_LENGTH);
-            System.out.println("ERROR: 'defaultShader.glsl'\n\tLinking of shaders failed.");
-            System.out.println(GL20.glGetProgramInfoLog(shaderProgram, len));
-            assert false : "";
-        }
-
         // ============================================================
         // Generate VAO, VBO, and EBO buffer objects, and send to GPU
         // ============================================================
@@ -134,8 +95,8 @@ public class LevelEditorScene extends Scene {
 
     @Override
     public void update(float dt) {
-        // Bind shader program
-        GL30.glUseProgram(shaderProgram);
+        defaultShader.use();
+
         // Bind the VAO that we're using
         GL30.glBindVertexArray(vaoID);
 
@@ -151,7 +112,7 @@ public class LevelEditorScene extends Scene {
 
         GL30.glBindVertexArray(0);
 
-        GL30.glUseProgram(0);
+        defaultShader.detach();
     }
 
 }

@@ -16,32 +16,32 @@ public class Window {
     private String title;
     private long glfwWindow;
 
-    public float r, g, b, a;
-
     private static Window window;
 
-    private static Scene currentScene = null;
+    private static Scene currentScene;
+
+    public float r, g, b, a;
 
     private Window(){
         this.width = 1920;
         this.height = 1080;
         this.title = "Mario";
 
-        r = 1.0f;
-        g = 1.0f;
-        b = 1.0f;
-        a = 1.0f;
+        r = 1;
+        b = 1;
+        g = 1;
+        a = 1;
     }
 
     public static void changeScene(int newSceneIndex){
         switch (newSceneIndex){
             case 0:
                 currentScene = new LevelEditorScene();
-
+                currentScene.init();
                 break;
             case 1:
                 currentScene = new LevelScene();
-
+                currentScene.init();
                 break;
             default:
                 assert false : "Unknown Scene '" + newSceneIndex + "'";
@@ -76,9 +76,9 @@ public class Window {
         // Setup an error callback
         GLFWErrorCallback.createPrint(System.err).set();
 
-        // initialize GLFW
-        if(!GLFW.glfwInit()){
-            throw new IllegalStateException("Unable to initialize GLFW");
+        // Initialize GLFW
+        if (!GLFW.glfwInit()) {
+            throw new IllegalStateException("Unable to initialize GLFW.");
         }
 
         // Configure GLFW
@@ -89,19 +89,17 @@ public class Window {
 
         // Create the window
         glfwWindow = GLFW.glfwCreateWindow(this.width, this.height, this.title, MemoryUtil.NULL, MemoryUtil.NULL);
-        if(glfwWindow == MemoryUtil.NULL){
-            throw new IllegalStateException("failed to create GLFW window");
+        if (glfwWindow == MemoryUtil.NULL) {
+            throw new IllegalStateException("Failed to create the GLFW window.");
         }
 
-        // Set Input Event Callbacks
         GLFW.glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback);
         GLFW.glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
         GLFW.glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
         GLFW.glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
 
-        // Make OpenGL context current
+        // Make the OpenGL context current
         GLFW.glfwMakeContextCurrent(glfwWindow);
-
         // Enable v-sync
         GLFW.glfwSwapInterval(1);
 
@@ -114,7 +112,8 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
-        changeScene(0);
+
+        Window.changeScene(0);
     }
 
     public void loop(){
@@ -129,7 +128,7 @@ public class Window {
             GL11.glClearColor(r, g, b, a);
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
-            if(dt >= 0){
+            if (dt >= 0) {
                 currentScene.update(dt);
             }
 

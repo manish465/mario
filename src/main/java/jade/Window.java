@@ -7,6 +7,7 @@ import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.system.MemoryUtil;
+import util.Time;
 
 import java.util.Objects;
 
@@ -15,12 +16,37 @@ public class Window {
     private String title;
     private long glfwWindow;
 
+    public float r, g, b, a;
+
     private static Window window;
+
+    private static Scene currentScene = null;
 
     private Window(){
         this.width = 1920;
         this.height = 1080;
         this.title = "Mario";
+
+        r = 1.0f;
+        g = 1.0f;
+        b = 1.0f;
+        a = 1.0f;
+    }
+
+    public static void changeScene(int newSceneIndex){
+        switch (newSceneIndex){
+            case 0:
+                currentScene = new LevelEditorScene();
+
+                break;
+            case 1:
+                currentScene = new LevelScene();
+
+                break;
+            default:
+                assert false : "Unknown Scene '" + newSceneIndex + "'";
+                break;
+        }
     }
 
     public static Window get(){
@@ -88,17 +114,30 @@ public class Window {
         // creates the GLCapabilities instance and makes the OpenGL
         // bindings available for use.
         GL.createCapabilities();
+        changeScene(0);
     }
 
     public void loop(){
+        float beginTime = Time.getTime();
+        float endTime;
+        float dt = -1.0f;
+
         while (!GLFW.glfwWindowShouldClose(glfwWindow)){
             // Poll events
             GLFW.glfwPollEvents();
 
-            GL11.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            GL11.glClearColor(r, g, b, a);
             GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
 
+            if(dt >= 0){
+                currentScene.update(dt);
+            }
+
             GLFW.glfwSwapBuffers(glfwWindow);
+
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
         }
     }
 }
